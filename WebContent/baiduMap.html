@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>s57maps</title>
+<style type="text/css">
+html {
+	height: 100%
+}
+
+body {
+	height: 100%;
+	margin: 0px;
+	padding: 0px
+}
+
+#container {
+	height: 100%
+}
+
+#left {
+	line-height: 60px;
+	background-color: #204d74;
+	height: 320px;
+	width: 300px;
+	float: left;
+	padding: 5px;
+}
+</style>
+<script type="text/javascript"
+	src="http://api.map.baidu.com/api?v=3.0&ak=	zcqfvmjCZ32HKpuIKDIzyFEe6FF0VhXy">
+	//v3.0版本的引用方式：src="http://api.map.baidu.com/api?v=3.0&ak=您的密钥"
+</script>
+<link rel="stylesheet"
+	href="resources/bootstrap-3.3.7/dist/css/bootstrap-theme.min.css">
+<link rel="stylesheet"
+	href="resources/bootstrap-3.3.7/dist/css/bootstrap.min.css">
+<script src="resources/bootstrap-3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="resources/bootstrap-3.3.7/js/tab.js"></script>
+<script src="resources/jquery1.9.1/jquery-1.9.1.min.js"></script>
+<script src="resources/bootstrap-3.3.7/js/dropdown.js"></script>
+<script type="text/javascript" src="resources/layer/layer.js"></script>
+</head>
+
+<body>
+	<div id="left">
+		<div class="row" style="margin-top: 50px">
+			<div class="col-md-12" style="margin-left: 40px">
+				<img id="headimg" class="img-responsive img-circle"
+					alt="Cinque Terre" width="200" height="200"
+					src="resources/img/headimg.jpeg">
+			</div>
+		</div>
+		<div class="text-center" style="margin-top: 10px;">
+			<h1 id="manager_username">
+				<font color="#f5f5dc">S57maps</font>
+			</h1>
+		</div>
+		<div id="operating" style="margin-top: 20px; margin-left: 30px">
+			<ul class="nav nav-pills nav-stacked" role="tablist">
+				<li role="presentation" id="nav_user_manager"
+					class="dropdown active"><a class="dropdown-toggle"
+					data-toggle="dropdown" href="#" onclick="click_UM()"> 岛屿管理 <span
+						class="caret"></span>
+				</a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="#" onclick="show_all_land()">显示岛屿</a></li>
+						<li><a href="#" onclick="hide_all_land()">去除岛屿</a></li>
+					</ul></li>
+				<li role="presentation" id="nav_posting_manager" class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#"
+					onclick="click_PM()"> 海岸线管理 <span class="caret"></span>
+				</a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="#" onclick="show_all_coastline()">显示海岸线</a></li>
+						<li><a href="#" onclick="show_fine_post()">取消海岸线</a></li>
+					</ul>
+				</li>
+				<li role="presentation" id="nva_depth_contour"><a href="#"
+					onclick="show_all_depth_contour()">等深线</a></li>
+				<li role="presentation" id="nva_depth_area"><a href="#"
+					onclick="show_all_depth_num()">深度值</a></li>
+				<li role="presentation" id="nva_team_manager"><a href="#">孤立灯塔区域</a></li>
+			</ul>
+		</div>
+
+	</div>
+	<div id="container"></div>
+	<script type="text/javascript">
+		var map = new BMap.Map("container");
+		// 创建地图实例
+		//var point = new BMap.Point(16.8812627,118.8237182);
+		var point = new BMap.Point(112.1713500000, 16.6973800000);
+		//var point = new BMap.Point(106.227036,9.632544);
+		// 创建点坐标
+		map.centerAndZoom(point, 10);
+		// 初始化地图，设置中心点坐标和地图级别
+		map.enableScrollWheelZoom(true);
+		//设置鼠标轮放
+		//岛屿信息集合
+		var landpolygons = new Array();
+		var m = 0;
+		//海岸线集合
+		var coastpolygons = new Array();
+		//等深线集合
+		var depthcontourpolygons = new Array();
+		//深水區域集合
+		var depthareapolygons = new Array();
+		//显示岛屿信息
+		function show_all_land() {
+			$
+					.ajax({
+						type : "GET",
+						url : "showland",
+						contentType : 'application/json;charset=utf-8', //设置请求头信息
+						dataType : "json",
+						success : function(landInfo) {
+							$.each(
+								landInfo,
+								function(i, landArea) {
+									//alert(JSON.stringify(landArea.coord.length));
+									var k = 0;
+									var points = new Array();
+									for (var j = 0; j < landArea.coord.length; j++) {
+										points[k] = new BMap.Point(
+												landArea.coord[j].xcoo,
+												landArea.coord[j].ycoo);
+										k = k + 1;
+									}
+									var polygon = new BMap.Polygon(
+											points,
+											{
+												strokeColor : "DarkGoldenRod",
+												fillColor : "GreenYellow",
+												fillOpacity : 0,
+												strokeWeight : 2,
+												strokeOpacity : 0.5
+											});
+									landpolygons[m++] = polygon;
+									map.addOverlay(polygon); //增加多边形
+								});
+						}
+					//layer.msg("岛屿显示完成");
+					})
+		}
+
+		//隐藏所有的岛屿
+		function hide_all_land() {
+			for (var k = 0; k < polygons.length; k++) {
+				landpolygons[k].hide();
+			}
+		}
+
+		//显示所有的海岸线
+		function show_all_coastline() {
+			$.ajax({
+				type : "GET",
+				url : "coastline",
+				contentType : 'application/json;charset=utf-8', //设置请求头信息
+				dataType : "json",
+				success : function(coastInfo) {
+					m = 0;
+					$.each(coastInfo, function(i, landArea) {
+						//alert(JSON.stringify(landArea.coord.length));
+						var k = 0;
+						var points = new Array();
+						for (var j = 0; j < landArea.coord.length; j++) {
+							points[k] = new BMap.Point(landArea.coord[j].xcoo,
+									landArea.coord[j].ycoo);
+							k = k + 1;
+						}
+						//alert(points.length);
+						points[k] = points[0];
+						var polyline = new BMap.Polyline(points, {
+							strokeColor : "DarkGoldenRod",
+							strokeWeight : 5,
+							strokeOpacity : 0.5
+						});
+						polyline.setStrokeStyle("dashed");
+						coastpolygons[m++] = polyline;
+						map.addOverlay(polyline); //增加多边形
+					});
+				}
+			//layer.msg("岛屿显示完成");
+			})
+		}
+		
+		//显示等深线
+		function show_all_depth_contour(){
+			$.ajax({
+				type : "GET",
+				url : "depthcontour",
+				contentType : 'application/json;charset=utf-8', //设置请求头信息
+				dataType : "json",
+				success : function(depthInfo) {
+					m = 0;
+					
+					$.each(depthInfo, function(i, landArea) {
+						var k = 0;
+						var points = new Array();
+						//解析返回回来的数据
+						for (var j = 0; j < landArea.coord.length; j++) {
+							points[k] = new BMap.Point(landArea.coord[j].xcoo,
+									landArea.coord[j].ycoo);
+							k = k + 1;
+						}
+						//alert(points.length);
+						//points[k] = points[0];
+						var polyline = new BMap.Polyline(points, {
+							strokeColor : "MidnightBlue",
+							strokeWeight : 2,
+							strokeOpacity : 0.5
+						});
+						polyline.setStrokeStyle("dashed");
+						depthcontourpolygons[m++] = polyline;
+						map.addOverlay(polyline); //增加多边形
+					});
+				}
+			//layer.msg("岛屿显示完成");
+			})
+		}
+		
+		function show_all_depth_num(){
+			$.ajax({
+				type : "GET",
+				url : "depthnum",
+				contentType : 'application/json;charset=utf-8', //设置请求头信息
+				dataType : "json",
+				success : function(depthInfo) {
+					for(var i = 0; i < depthInfo.length; i++){
+						//点标注
+						var pt = new BMap.Point(depthInfo[i].xcoo, depthInfo[i].ycoo);
+						var marker2 = new BMap.Marker(pt);  // 创建标注
+						map.addOverlay(marker2);              // 将标注添加到地图中
+						
+						var label = new BMap.Label(depthInfo[i].ve3d+"",{offset:new BMap.Size(20,-10)});
+						marker2.setLabel(label);
+					}
+				}
+			})
+		}
+	</script>
+</body>
+</html>

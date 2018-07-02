@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+        .map {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 50px;
+            z-index: 70;
+        }
+
+        table.controls td {
+            text-align: center;
+            padding: 2px 5px;
+            min-width: 60px;
+        }
+
+        #tablediv{
+            background-color: rgba(0,0,0,0);
+            position: absolute;
+            top: 60px;
+            z-index: 100;
+        }
+    </style>
+    <title>OpenLayers s57maps</title>
+    <script src="resources/v4.6.5-dist/ol.js"></script>
+    <script src="resources/v4.6.5-dist/ol-debug.js"></script>
+    <link rel="stylesheet" href="resources/v4.6.5-dist/ol.css">
+    <link rel="stylesheet"
+          href="resources/bootstrap-3.3.7/dist/css/bootstrap-theme.min.css">
+    <link rel="stylesheet"
+          href="resources/bootstrap-3.3.7/dist/css/bootstrap.min.css">
+    <script src="resources/bootstrap-3.3.7/dist/js/bootstrap.min.js"></script>
+    <script src="resources/bootstrap-3.3.7/js/tab.js"></script>
+    <script src="resources/jquery1.9.1/jquery-1.9.1.min.js"></script>
+    <script src="resources/bootstrap-3.3.7/js/dropdown.js"></script>
+    <script type="text/javascript" src="resources/layer/layer.js"></script>
+    <script src="openlayersLand.js"></script>
+    <script src="openlayersCoastline.js"></script>
+    <script src="openlayersDepth.js"></script>
+    <script src="openlayersDanger.js"></script>
+    <script src="controller.js"></script>
+</head>
+<body onload="showAll();">
+<nav
+        class="navbar navbar-inverse  navbar-fixed-top navbar-static-top"
+        role="navigation">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed"
+                    data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span> <span
+                    class="icon-bar"></span> <span class="icon-bar"></span> <span
+                    class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#"><img src="resources/tiled-layers.png"
+                                                  height="22" width="40"/></a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse"
+             id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li class="dropdown"><a href="#" class="dropdown-toggle"
+                                        data-toggle="dropdown">显示设置<span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" onclick="visibleAll()">全部显示</a></li>
+                        <li><a href="#" onclick="inVisibleAll()">清除所有</a></li>
+                    </ul></li>
+                <li class="dropdown"><a href="#" class="dropdown-toggle"
+                                        data-toggle="dropdown">岛屿显示<span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" onclick="landShow()">显示</a></li>
+                        <li><a href="#" onclick="landNotShow()">取消显示</a></li>
+                    </ul></li>
+                <li class="dropdown"><a href="#" class="dropdown-toggle"
+                                        data-toggle="dropdown">海岸线显示<span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" onclick="coastShow()">显示</a></li>
+                        <li><a href="#" onclick="coastNotShow()">取消显示</a></li>
+                    </ul></li>
+                <li class="dropdown"><a href="#" class="dropdown-toggle"
+                                        data-toggle="dropdown">等深线显示<span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" onclick="depthShow()">显示</a></li>
+                        <li><a href="#" onclick="depthNotShow()">取消显示</a></li>
+                    </ul></li>
+                <li class="dropdown"><a href="#" class="dropdown-toggle"
+                                        data-toggle="dropdown">危险区域显示<span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" onclick="dangerShow()">显示</a></li>
+                        <li><a href="#" onclick="dangerNotShow()">取消显示</a></li>
+                    </ul></li>
+                <!--<li class="dropdown"><a href="#" class="dropdown-toggle"
+                                        data-toggle="dropdown">地图样式 <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" onclick="dayModel()">白天</a></li>
+                        <li><a href="#" onclick="order()">夜间</a></li>
+                    </ul></li>  -->
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <p class="navbar-text">
+                    <font color="#778899">@s57maps</font>
+                </p>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container-fluid -->
+</nav>
+<div style="margin-top: 50px" id="tablediv">
+<table class="controls" >
+    <tr>
+        <td>色调</td>
+        <td><span id="hueOut"></span>°</td>
+        <td><input id="hue" type="range" min="-180" max="180" value="0"/></td>
+    </tr>
+    <tr>
+        <td>浓度</td>
+        <td><span id="chromaOut"></span> %</td>
+        <td><input id="chroma" type="range" min="0" max="100" value="100"/></td>
+    </tr>
+    <tr>
+        <td>亮度</td>
+        <td><span id="lightnessOut"></span> %</td>
+        <td><input id="lightness" type="range" min="0" max="100" value="100"/></td>
+    </tr>
+</table>
+</div>
+<div id="map" class="map">
+</div>
+
+<script type="text/javascript">
+    /*//创建openlayers图层
+    var map = new ol.Map({
+        target : 'map',
+        layers : [ new ol.layer.Tile({
+            source : new ol.source.OSM()
+        }) ],
+        view : new ol.View({
+            //中心点坐标
+            center : ol.proj.fromLonLat([ 107.595635, -0.769008 ]),
+            //图层显示大小
+            zoom : 9
+        })
+    });*/
+
+    /**
+     * Color manipulation functions below are adapted from
+     * https://github.com/d3/d3-color.
+     */
+    var Xn = 0.950470;
+    var Yn = 1;
+    var Zn = 1.088830;
+    var t0 = 4 / 29;
+    var t1 = 6 / 29;
+    var t2 = 3 * t1 * t1;
+    var t3 = t1 * t1 * t1;
+    var twoPi = 2 * Math.PI;
+
+
+    /**
+     * Convert an RGB pixel into an HCL pixel.
+     * @param {Array.<number>} pixel A pixel in RGB space.
+     * @return {Array.<number>} A pixel in HCL space.
+     */
+    function rgb2hcl(pixel) {
+        var red = rgb2xyz(pixel[0]);
+        var green = rgb2xyz(pixel[1]);
+        var blue = rgb2xyz(pixel[2]);
+
+        var x = xyz2lab(
+            (0.4124564 * red + 0.3575761 * green + 0.1804375 * blue) / Xn);
+        var y = xyz2lab(
+            (0.2126729 * red + 0.7151522 * green + 0.0721750 * blue) / Yn);
+        var z = xyz2lab(
+            (0.0193339 * red + 0.1191920 * green + 0.9503041 * blue) / Zn);
+
+        var l = 116 * y - 16;
+        var a = 500 * (x - y);
+        var b = 200 * (y - z);
+
+        var c = Math.sqrt(a * a + b * b);
+        var h = Math.atan2(b, a);
+        if (h < 0) {
+            h += twoPi;
+        }
+
+        pixel[0] = h;
+        pixel[1] = c;
+        pixel[2] = l;
+
+        return pixel;
+    }
+
+
+    /**
+     * Convert an HCL pixel into an RGB pixel.
+     * @param {Array.<number>} pixel A pixel in HCL space.
+     * @return {Array.<number>} A pixel in RGB space.
+     */
+    function hcl2rgb(pixel) {
+        var h = pixel[0];
+        var c = pixel[1];
+        var l = pixel[2];
+
+        var a = Math.cos(h) * c;
+        var b = Math.sin(h) * c;
+
+        var y = (l + 16) / 116;
+        var x = isNaN(a) ? y : y + a / 500;
+        var z = isNaN(b) ? y : y - b / 200;
+
+        y = Yn * lab2xyz(y);
+        x = Xn * lab2xyz(x);
+        z = Zn * lab2xyz(z);
+
+        pixel[0] = xyz2rgb(3.2404542 * x - 1.5371385 * y - 0.4985314 * z);
+        pixel[1] = xyz2rgb(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z);
+        pixel[2] = xyz2rgb(0.0556434 * x - 0.2040259 * y + 1.0572252 * z);
+
+        return pixel;
+    }
+
+    function xyz2lab(t) {
+        return t > t3 ? Math.pow(t, 1 / 3) : t / t2 + t0;
+    }
+
+    function lab2xyz(t) {
+        return t > t1 ? t * t * t : t2 * (t - t0);
+    }
+
+    function rgb2xyz(x) {
+        return (x /= 255) <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+    }
+
+    function xyz2rgb(x) {
+        return 255 * (x <= 0.0031308 ?
+            12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055);
+    }
+
+    var raster = new ol.source.Raster({
+        sources: [new ol.source.OSM({
+            layer: 'watercolor',
+            transition: 0
+        })],
+        operation: function(pixels, data) {
+            var hcl = rgb2hcl(pixels[0]);
+
+            var h = hcl[0] + Math.PI * data.hue / 180;
+            if (h < 0) {
+                h += twoPi;
+            } else if (h > twoPi) {
+                h -= twoPi;
+            }
+            hcl[0] = h;
+
+            hcl[1] *= (data.chroma / 100);
+            hcl[2] *= (data.lightness / 100);
+
+            return hcl2rgb(hcl);
+        },
+        lib: {
+            rgb2hcl: rgb2hcl,
+            hcl2rgb: hcl2rgb,
+            rgb2xyz: rgb2xyz,
+            lab2xyz: lab2xyz,
+            xyz2lab: xyz2lab,
+            xyz2rgb: xyz2rgb,
+            Xn: Xn,
+            Yn: Yn,
+            Zn: Zn,
+            t0: t0,
+            t1: t1,
+            t2: t2,
+            t3: t3,
+            twoPi: twoPi
+        }
+    });
+
+    var controls = {};
+
+    raster.on('beforeoperations', function(event) {
+        var data = event.data;
+        for (var id in controls) {
+            data[id] = Number(controls[id].value);
+        }
+    });
+
+    var map = new ol.Map({
+        layers: [
+            new ol.layer.Image({
+                source: raster
+            })
+        ],
+        target: 'map',
+        view: new ol.View({
+            center : ol.proj.fromLonLat([ 107.595635, -0.769008 ]),
+            //图层显示大小
+            zoom : 9,
+            maxZoom: 18
+        })
+    });
+
+    var controlIds = ['hue', 'chroma', 'lightness'];
+    controlIds.forEach(function(id) {
+        var control = document.getElementById(id);
+        var output = document.getElementById(id + 'Out');
+        control.addEventListener('input', function() {
+            output.innerText = control.value;
+            raster.changed();
+        });
+        output.innerText = control.value;
+        controls[id] = control;
+    });
+
+
+</script>
+</body>
+</html>
